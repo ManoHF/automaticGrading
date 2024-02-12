@@ -1,0 +1,119 @@
+{% extends "base.html" %} {% block title %}Home{% endblock %} 
+
+{% block extraStyle %} 
+<style>
+  .resultado {
+      height: 600px; /* Altura fija */
+      overflow-y: auto; /* Agrega scrollbar verticalmente si es necesario */
+      background-color: #f8f9fa; /* Color de fondo (Bootstrap light) */
+      border: 1px solid #dee2e6; /* Borde (Bootstrap) */
+      padding: 15px; /* Espaciado interior */
+  }
+  .upload-section {
+      height: 300px; /* Altura fija */
+      background-color: rgba(179, 186, 166, 0.79); /* Verde musgo semitransparente */
+      padding: 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row">
+        <!-- Column for Upload Sections -->
+        <div class="col-md-6">
+            <!-- Checar Doc. con ChatGPT -->
+            <div class="upload-section" style="background-color: #f0f0f0; padding: 20px; margin-bottom: 20px;">
+                <form action="/procesar" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="checkChat">
+                    <h5 style="font-weight: bold;">Checar Documento con ChatGPT</h5>
+                    <div class="form-group">
+                        <input type="file" class="form-control-file" id="fileUploadChatGPT" name="fileUpload" required>
+                    </div>
+                    <small class="form-text" style="color: rgba(0, 0, 0, 0.5);">
+                        Solo se aceptan archivos en formato Word y PDF.
+                    </small>
+                    <button type="submit" class="btn" style="background-color: #4CAF50; color: white; margin-bottom: 10px;">Procesar</button>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="checkForm1" onchange="toggleFields('form1Fields')">
+                        <label class="form-check-label" for="checkForm1">
+                            Añadir datos adicionales
+                        </label>
+                    </div>
+                    <div id="form1Fields" style="display: none;">
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="text" class="form-control mt-2" placeholder="Departamento" name="departamento">
+                                <input type="text" class="form-control mt-2" placeholder="Profesor" name="profesor">
+                            </div>
+                            <div class="col-6">
+                                <input type="text" class="form-control mt-2" placeholder="Materia" name="materia">
+                                <input type="date" class="form-control mt-2" name="fecha">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+    
+            <!-- Subir Doc. Calificado -->
+            <div class="upload-section" style="background-color: #e9ecef; padding: 20px;">
+                <form action="/procesar" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="uploadAnswers">
+                    <h5 style="font-weight: bold;">Subir Documento Calificado</h5>
+                    <div class="form-group">
+                        <input type="file" class="form-control-file" id="fileUploadCalificado" name="fileUpload" required>
+                    </div>
+                    <small class="form-text" style="color: rgba(0, 0, 0, 0.5);">
+                        Solo se aceptan archivos en formato Word y PDF.
+                    </small>
+                    <button type="submit" class="btn" style="background-color: #007BFF; color: white; margin-bottom: 10px">Subir</button>
+                
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="checkForm2" onchange="toggleFields('form2Fields')">
+                        <label class="form-check-label" for="checkForm2">
+                            Añadir datos adicionales
+                        </label>
+                    </div>
+                    <div id="form2Fields" style="display: none;">
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="text" class="form-control mt-2" placeholder="Departamento" name="departamento2">
+                                <input type="text" class="form-control mt-2" placeholder="Profesor" name="profesor2">
+                            </div>
+                            <div class="col-6">
+                                <input type="text" class="form-control mt-2" placeholder="Materia" name="materia2">
+                                <input type="date" class="form-control mt-2" name="fecha">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Column for Result Display -->
+        <div class="col-md-6">
+            <div class="resultado" style="padding: 20px; border: 1px solid #ddd; height: 100%;">
+                {% if resultado %}
+                <iframe src="/generate_pdf?id={{resultado}}&action={{action}}" style="width: 100%; height: 100%;"></iframe>
+                {% else %}
+                <p style="color: rgba(0, 0, 0, 0.5);">El resultado aparecerá aquí.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleFields(fieldsDivId) {
+        const fieldsDiv = document.getElementById(fieldsDivId);
+        if (fieldsDiv.style.display === "none") {
+            fieldsDiv.style.display = "block";
+        } else {
+            fieldsDiv.style.display = "none";
+        }
+    }
+    </script>
+
+{% endblock %}

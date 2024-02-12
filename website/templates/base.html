@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExamChecker</title>
+    <!-- Enlace al CSS de Bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        html, body { height: 100%; margin: 0; }
+        body { display: flex; flex-direction: column; }
+        .footer { margin-top: auto; }
+    </style>
+    {% block extraStyle %} {% endblock %}
+</head>
+
+<body>
+    <!-- Barra de navegación -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <a class="navbar-brand" href="/">
+            <img src="../static/navbar-icon.png" width="30" height="30" class="d-inline-block align-top" alt="">
+            Exam Grader
+        </a>
+        <div class="collapse navbar-collapse" id="navbar">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <form class="form-inline">
+                        <input class="form-control mb-2 mr-sm-2" type="search" placeholder="Usuario" aria-label="Usuario">
+                        <input class="form-control mb-2 mr-sm-2" type="password" placeholder="Contraseña" aria-label="Contraseña">
+                        <button class="btn btn-outline-success mb-2" type="submit">Iniciar Sesión</button>
+                    </form>   
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Registrarse</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido principal de la página -->
+    <!-- Asegúrate de envolver el contenido de tu página (excepto la barra de navegación y el pie de página) aquí, si tienes más contenido -->
+    <main class="flex-fill">
+        <!-- El contenido va aquí -->
+        {% block content %} {% endblock %}
+    </main>
+
+    <div class="container"></div>
+
+    <!-- Pie de página -->
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container">
+            <span class="text-muted text-right">Manuel Hermida (2024)</span>
+        </div>
+    </footer>
+
+    <!-- Opcional: enlaces a JavaScript de Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+
+
