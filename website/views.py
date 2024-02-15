@@ -1,7 +1,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for, Response, render_template_string
 from werkzeug.utils import secure_filename
 from .services import get_chatGPT_response, extract_text_from_file, create_document, add_exam_data
-from .models import create_exam_chat, retrieve_exam_chat, create_exam_prof, retrieve_exam_prof
+from .models import create_exam_chat, retrieve_exam_chat, create_exam_prof, retrieve_exam_prof, compare_exams
 from io import BytesIO
 
 views = Blueprint('views', __name__)
@@ -56,9 +56,9 @@ def validar():
         recent_id = request.form.get('recentId', '')
         if recent_id != "":
             if action == 'checkChat':
-                dicc = retrieve_exam_chat(recent_id)
+                dicc2 = retrieve_exam_chat(recent_id)
             else:
-                dicc = retrieve_exam_prof(recent_id)
+                dicc2 = retrieve_exam_prof(recent_id)
             
 
             if 'fileUpload' not in request.files:
@@ -87,19 +87,29 @@ def validar():
                     dict_res['ai_exam_id'] = recent_id
                     id_obj = create_exam_prof(dict_res)
 
-                return render_template('home.html', resultado=id_obj, action=action)
+                return render_template('home.html', resultado=id_obj, action=action, validar=True)
     
     return render_template('home.html')
 
 @views.route('/generate_pdf', methods=['GET'])
 def generate_pdf():
-    id = request.args.get('id')
+    id1 = request.args.get('id')
     action = request.args.get('action')
 
     if action == 'checkChat':
-        dicc = retrieve_exam_chat(id)
+        dicc = retrieve_exam_chat(id1)
+        if 'prof_exam_id' in dicc:
+            dicc2 = retrieve_exam_prof(dicc['prof_exam_id'])
     else:
-        dicc = retrieve_exam_prof(id)
+        dicc = retrieve_exam_prof(id1)
+        if 'ai_exam_id' in dicc:
+            dicc2 = retrieve_exam_chat(dicc['ai_exam_id'])
+
+    validar = request.args.get('validar')
+    if validar:
+        correct, total = compare_exams(dicc, dicc2)
+        return f"Evaluacion: {correct}/{total}"
+
 
     buffer = BytesIO()
     create_document(dicc['titulo'], dicc['lista_preguntas'], buffer)

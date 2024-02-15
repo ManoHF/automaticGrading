@@ -81,7 +81,7 @@
         <div class="col-md-6">
             <div class="resultado" style="padding: 20px; border: 1px solid #ddd; height: 100%;">
                 {% if resultado %}
-                <iframe src="/generate_pdf?id={{resultado}}&action={{action}}" style="width: 100%; height: 100%;"></iframe>
+                <iframe src="/generate_pdf?id={{resultado}}&action={{action}}&validar={{validar}}" style="width: 100%; height: 100%;"></iframe>
                 {% else %}
                 <p style="color: rgba(0, 0, 0, 0.5);">El resultado aparecerá aquí.</p>
                 {% endif %}
