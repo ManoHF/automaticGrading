@@ -22,17 +22,14 @@ contexto = [
     {
         "role": "user",
         "content": """Responde las preguntas de opcion multiple, regresa una respuesta en un diccionario de python que contenga lo siguiente:
-                        - departamento
-                        - materia
                         - titulo
-                        - fecha
                         - lista_preguntas: cada pregunta es un diccionario con 'texto' y otra lista con las 4 'opciones' y su 'respuesta_correcta'
                     Tu respuesta debe iniciar y terminar solo con el diccionario, es decir \{\}. Utiliza las llaves de manera exacta como se describieron previamente
                     """
     }
 ]
 
-def get_chatGPT_response(course: str, question: str, checado=False, context : list = contexto, model='gpt-4', md=False):
+def get_chatGPT_response(question: str, checado=False, context : list = contexto, model='gpt-4', md=False):
     """
     Hace una conexion a chatGPT para responder una pregunta en un determinado contexto y regresando
     el resultado en forma de diccionario
@@ -145,3 +142,17 @@ def add_bullets(doc: list, lista: list, correcta: str):
 
     doc.append(lista_items)
     doc.append(Spacer(1, 0.5*cm))
+
+
+def add_exam_data(doc: dict, departamento: str, materia: str, profesor: str, fecha: str):
+    if departamento != "":
+        doc['departamento'] = departamento
+
+    if materia != "":
+        doc['materia'] = materia
+
+    if profesor != "":
+        doc['profesor'] = profesor
+    
+    if fecha != "":
+        doc['fecha'] = fecha
