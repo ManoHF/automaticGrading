@@ -60,9 +60,9 @@
                 <form id="documentProcessingForm2" action="/validar" method="post" enctype="multipart/form-data">
                     <h5 style="font-weight: bold;">Validar Examen</h5>
                     {% if resultado %}
-                        <input type="text" class="form-control mt-2" value={{resultado}} name="materia">
+                        <input type="text" class="form-control mt-2" value={{resultado}} name="recentId">
                     {% else %}
-                        <input type="text" class="form-control mt-2" placeholder="Most recent document ID" name="materia">
+                        <input type="text" class="form-control mt-2" placeholder="Most recent document ID" name="recentId">
                     {% endif %}
                     <br>
                     <div class="form-group">

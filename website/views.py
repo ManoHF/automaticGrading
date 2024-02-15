@@ -49,41 +49,45 @@ def procesar():
     return render_template('home.html')
 
 @views.route('/validar', methods=['POST'])
-def procesar():
+def validar():
     if request.method == 'POST':
        
         action = request.form.get('action', '')
-        if action == 'checkChat':
-            dicc = retrieve_exam_chat(id)
-        else:
-            dicc = retrieve_exam_prof(id)
-        
-
-        if 'fileUpload' not in request.files:
-            return redirect(request.url)
-
-        file = request.files['fileUpload']
-        if file.filename == '':
-            return redirect(request.url)
-
-        if file:
-            filename = secure_filename(file.filename)
-            content = file.read()
-            file_text = extract_text_from_file(content, filename)
-
+        recent_id = request.form.get('recentId', '')
+        if recent_id != "":
             if action == 'checkChat':
-                result = get_chatGPT_response(file_text)
-                dict_res = eval(result)
-                #add_exam_data(dict_res, departamento, materia, profesor, fecha)
-                id_obj = create_exam_chat(dict_res)
+                dicc = retrieve_exam_chat(recent_id)
+            else:
+                dicc = retrieve_exam_prof(recent_id)
+            
 
-            elif action == 'uploadAnswers':
-                result = get_chatGPT_response(file_text, True)
-                dict_res = eval(result)
-                #add_exam_data(dict_res, departamento, materia, profesor, fecha)
-                id_obj = create_exam_prof(dict_res)
+            if 'fileUpload' not in request.files:
+                return redirect(request.url)
 
-            return render_template('home.html', resultado=id_obj, action=action)
+            file = request.files['fileUpload']
+            if file.filename == '':
+                return redirect(request.url)
+
+            if file:
+                filename = secure_filename(file.filename)
+                content = file.read()
+                file_text = extract_text_from_file(content, filename)
+
+                if action == 'checkChat':
+                    result = get_chatGPT_response(file_text)
+                    dict_res = eval(result)
+                    #add_exam_data(dict_res, departamento, materia, profesor, fecha)
+                    dict_res['prof_exam_id'] = recent_id
+                    id_obj = create_exam_chat(dict_res)
+
+                elif action == 'uploadAnswers':
+                    result = get_chatGPT_response(file_text, True)
+                    dict_res = eval(result)
+                    #add_exam_data(dict_res, departamento, materia, profesor, fecha)
+                    dict_res['ai_exam_id'] = recent_id
+                    id_obj = create_exam_prof(dict_res)
+
+                return render_template('home.html', resultado=id_obj, action=action)
     
     return render_template('home.html')
 
