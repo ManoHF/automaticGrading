@@ -24,7 +24,7 @@ contexto = [
         "content": """Responde las preguntas de opcion multiple, regresa una respuesta en un diccionario de python que contenga lo siguiente:
                         - titulo
                         - lista_preguntas: cada pregunta es un diccionario con 'texto' y otra lista con las 4 'opciones' y su 'respuesta_correcta'
-                    Tu respuesta debe iniciar y terminar solo con el diccionario, es decir \{\}. Utiliza las llaves de manera exacta como se describieron previamente
+                    Tu respuesta debe iniciar y terminar solo con el diccionario, es decir usa llaves para abrir y terminar. Utiliza las llaves de manera exacta como se describieron previamente
                     """
     }
 ]

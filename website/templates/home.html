@@ -9,86 +9,112 @@
       border: 1px solid #dee2e6; /* Borde (Bootstrap) */
       padding: 15px; /* Espaciado interior */
   }
-  .upload-section {
-      height: 300px; /* Altura fija */
-      background-color: rgba(179, 186, 166, 0.79); /* Verde musgo semitransparente */
-      padding: 20px;
-  }
 </style>
 {% endblock %}
 
 {% block content %}
+<!-- Título de la página Home -->
+<div class="container-fluid" style="background: linear-gradient(to right, #abcae8, #ffffff); padding: 10px;">
+    <h1> Checa, valida y compara exámenes usando IA</h1>
+</div>
 
-<div class="container mt-5">
-    <div class="row">
-        <!-- Column for Upload Sections -->
-        <div class="col-md-6">
-            <!-- Checar Doc. con ChatGPT o Registrar respuestas de profesor -->
-            <div class="upload-section" style="background-color: #f0f0f0; padding: 20px; margin-bottom: 20px;">
-                <form id="documentProcessingForm" action="/procesar" method="post" enctype="multipart/form-data">
-                    <h5 style="font-weight: bold;">Procesar Documento</h5>
-                    <div class="form-group">
-                        <input type="file" class="form-control-file" id="fileUploadChatGPT" name="fileUpload" required>
-                    </div>
-                    <small class="form-text" style="color: rgba(0, 0, 0, 0.5);">
-                        Solo se aceptan archivos en formato Word y PDF.
-                    </small>
-                    <button type="submit" class="btn" name="action" value="checkChat" onclick="submitFormWithExtraData('checkChat')" style="background-color: #4CAF50; color: white; margin-bottom: 10px;">Calificar Automático</button>
-                    <button type="submit" class="btn" name="action" value="uploadAnswers" onclick="submitFormWithExtraData('uploadAnswers')" style="background-color: #007BFF; color: white; margin-bottom: 10px">Registrar Respuestas</button>
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="checkForm1" onchange="toggleFields('form1Fields')">
-                        <label class="form-check-label" for="checkForm1">
-                            Añadir datos adicionales
-                        </label>
-                    </div>
-                    <div id="form1Fields" style="display: none;">
-                        <div class="row">
-                            <div class="col-6">
-                                <input type="text" class="form-control mt-2" placeholder="Departamento" name="departamento">
-                                <input type="text" class="form-control mt-2" placeholder="Profesor" name="profesor">
-                            </div>
-                            <div class="col-6">
-                                <input type="text" class="form-control mt-2" placeholder="Materia" name="materia">
-                                <input type="date" class="form-control mt-2" name="fecha">
-                            </div>
+<!-- Texto de introducción -->
+<div class="container-fluid" style="padding: 10px;">
+    <p style="font-size: 18px;"> 
+        Esta herramienta te permite subir documentos <b>Word</b> o <b>PDF</b> para ser calificados (por ChatGPT) o almacenados
+        para su posterior comparación. El objetivo es validar la eficiencia de la IA para la corrección automática de exámenes.
+    </p>
+</div>
+
+<!-- Conjunto de pestañas-->
+<div class="container-fluid">
+    <ul class="nav nav-tabs justify-content-center bg-gradient-light" id="myTab" role="tablist">
+        <!-- Titulos de pestañas -->
+        <li class="nav-item w-50">
+            <a class="nav-link active text-center" id="form1-tab" data-toggle="tab" href="#form1" role="tab" aria-controls="form1" aria-selected="true">1. Procesar documento: usar IA o almacenar respuestas</a>
+        </li>
+        <li class="nav-item w-50">
+            <a class="nav-link text-center" id="form2-tab" data-toggle="tab" href="#form2" role="tab" aria-controls="form2" aria-selected="false">2. Validar documento</a>
+        </li>
+    </ul>
+    <!-- Contenido de las pestañas -->
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="form1" role="tabpanel" aria-labelledby="form1-tab">
+            <!-- Form para procesar -->
+            <form id="documentProcessingForm" action="/procesar" method="post" enctype="multipart/form-data" class="text-center" style="background: radial-gradient(circle, #ccd2d8, #ffffff); padding: 10px;">
+                <h5 style="font-weight: bold;">Procesar Examen</h5>
+                <div class="form-group">
+                    <input type="file" class="form-control-file" id="fileUploadChatGPT" name="fileUpload" required>
+                </div>
+                <small class="form-text" style="color: rgba(0, 0, 0, 0.5);">
+                    Solo se aceptan archivos en formato Word y PDF.
+                </small>
+                <button type="submit" class="btn" name="action" value="checkChat" style="background-color: #4CAF50; color: white; margin-bottom: 10px;">Calificar Automático</button>
+                <button type="submit" class="btn" name="action" value="uploadAnswers" style="background-color: #347936; color: white; margin-bottom: 10px;">Registrar Respuestas</button>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="checkForm1" onchange="toggleFields('form1Fields')">
+                    <label class="form-check-label" for="checkForm1">
+                        Añadir datos adicionales
+                    </label>
+                </div>
+                <div id="form1Fields" style="display: none;">
+                    <div class="row">
+                        <div class="col-6">
+                            <input type="text" class="form-control mt-2" placeholder="Departamento" name="departamento">
+                            <input type="text" class="form-control mt-2" placeholder="Profesor" name="profesor">
+                        </div>
+                        <div class="col-6">
+                            <input type="text" class="form-control mt-2" placeholder="Materia" name="materia">
+                            <input type="date" class="form-control mt-2" name="fecha">
                         </div>
                     </div>
-                </form>
-            </div>
-    
-            <div class="upload-section" style="background-color: #f0f0f0; padding: 20px; margin-bottom: 20px;">
-                <form id="documentProcessingForm2" action="/validar" method="post" enctype="multipart/form-data">
-                    <h5 style="font-weight: bold;">Validar Examen</h5>
-                    {% if resultado %}
-                        <input type="text" class="form-control mt-2" value={{resultado}} name="recentId">
-                    {% else %}
-                        <input type="text" class="form-control mt-2" placeholder="Most recent document ID" name="recentId">
-                    {% endif %}
-                    <br>
-                    <div class="form-group">
-                        <input type="file" class="form-control-file" id="fileVerify" name="fileUpload" required>
-                    </div>
-                    <small class="form-text" style="color: rgba(0, 0, 0, 0.5);">
-                        Solo se aceptan archivos en formato Word y PDF.
-                    </small>
-                    <button type="submit" class="btn" name="action" value="checkChat" onclick="submitFormWithExtraData('checkChat')" style="background-color: #4CAF50; color: white; margin-bottom: 10px;">Validar IA</button>
-                    <button type="submit" class="btn" name="action" value="uploadAnswers" onclick="submitFormWithExtraData('uploadAnswers')" style="background-color: #007BFF; color: white; margin-bottom: 10px">Validar Prof</button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
-
-        <!-- Column for Result Display -->
-        <div class="col-md-6">
-            <div class="resultado" style="padding: 20px; border: 1px solid #ddd; height: 100%;">
+        <div class="tab-pane fade" id="form2" role="tabpanel" aria-labelledby="form2-tab">
+            <!-- Form para almacenar respuestas -->
+            <form id="documentProcessingForm2" action="/validar" method="post" enctype="multipart/form-data" class="text-center" style="background: radial-gradient(circle, #ccd2d8, #ffffff); padding: 10px;">
+                <h5 style="font-weight: bold;">Validar Examen</h5>
                 {% if resultado %}
-                <iframe src="/generate_pdf?id={{resultado}}&action={{action}}&validar={{validar}}" style="width: 100%; height: 100%;"></iframe>
+                    <input type="text" class="form-control mt-2" value={{resultado}} name="recentId">
                 {% else %}
-                <p style="color: rgba(0, 0, 0, 0.5);">El resultado aparecerá aquí.</p>
+                    <input type="text" class="form-control mt-2" placeholder="Most recent document ID" name="recentId">
                 {% endif %}
-            </div>
+                <br>
+                <div class="form-group">
+                    <input type="file" class="form-control-file" id="fileVerify" name="fileUpload" required>
+                </div>
+                <small class="form-text" style="color: rgba(0, 0, 0, 0.5);">
+                    Solo se aceptan archivos en formato Word y PDF.
+                </small>
+                <button type="submit" class="btn" name="action" value="checkChat" style="background-color: #4CAF50; color: white; margin-bottom: 10px;">Validar IA</button>
+                <button type="submit" class="btn" name="action" value="uploadAnswers" style="background-color: #007BFF; color: white; margin-bottom: 10px">Validar Prof</button>
+            </form>
         </div>
     </div>
 </div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="resultado" style="padding: 20px; border: 1px solid #ddd;">
+            {% if resultado %}
+            <iframe src="{{ url_for('views.generate_pdf', id=resultado, action=action, validar=validar) }}" style="width: 100%; height: 100%;"></iframe>
+            {% else %}
+            <p style="color: rgba(0, 0, 0, 0.5);">El resultado aparecerá aquí.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <!-- Second column content goes here -->
+        {% if validar %}
+        <h5 style="font-weight: bold;">Desempeño de ChatGPT: </h5>
+        <p style="color: rgba(0, 0, 0, 0.5);"> {{evalua[0]}} / {{evalua[1]}} </p>
+        {% else %}
+        <p style="color: rgba(0, 0, 0, 0.5);">Valida tu examen.</p>
+        {% endif %}
+    </div>
+</div>
+
 
 <script>
     function toggleFields(fieldsDivId) {
@@ -99,43 +125,7 @@
             fieldsDiv.style.display = "none";
         }
     }
+</script>
 
-    // Function to submit form with extra data
-    function submitFormWithExtraData(actionValue) {
-        var form = document.getElementById('documentProcessingForm');
-        var selectedButtonValue = actionValue; // Value of the button that was pressed
-
-        // Collect textbox values
-        var formData = new FormData(form);
-        formData.append('action', selectedButtonValue);
-
-        var inputs = form.getElementsByTagName('input');
-        for (var i = 0; i < inputs.length; i++) {
-            if (inputs[i].type === 'text') {
-                formData.append(inputs[i].name, inputs[i].value);
-            }
-        }
-
-        var dateInput = form.querySelector('input[type="date"]');
-        if (dateInput) {
-            formData.append(dateInput.name, dateInput.value);
-        }
-        
-        // Submit the form
-        fetch('/procesar', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to process the document.');
-            }
-            return response.json();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-    </script>
 
 {% endblock %}

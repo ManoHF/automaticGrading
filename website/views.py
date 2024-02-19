@@ -46,7 +46,7 @@ def procesar():
 
             return render_template('home.html', resultado=id_obj, action=action)
     
-    return render_template('home.html')
+    return redirect(url_for('views.home'))
 
 @views.route('/validar', methods=['POST'])
 def validar():
@@ -54,12 +54,7 @@ def validar():
        
         action = request.form.get('action', '')
         recent_id = request.form.get('recentId', '')
-        if recent_id != "":
-            if action == 'checkChat':
-                dicc2 = retrieve_exam_chat(recent_id)
-            else:
-                dicc2 = retrieve_exam_prof(recent_id)
-            
+        if recent_id != "Most recent document ID":          
 
             if 'fileUpload' not in request.files:
                 return redirect(request.url)
@@ -87,7 +82,9 @@ def validar():
                     dict_res['ai_exam_id'] = recent_id
                     id_obj = create_exam_prof(dict_res)
 
-                return render_template('home.html', resultado=id_obj, action=action, validar=True)
+                evalua = compare_exams(id_obj, recent_id, action)
+
+                return render_template('home.html', resultado=id_obj, action=action, validar=True, evalua=evalua)
     
     return render_template('home.html')
 
@@ -98,23 +95,23 @@ def generate_pdf():
 
     if action == 'checkChat':
         dicc = retrieve_exam_chat(id1)
-        if 'prof_exam_id' in dicc:
-            dicc2 = retrieve_exam_prof(dicc['prof_exam_id'])
+        #if 'prof_exam_id' in dicc:
+        #    dicc2 = retrieve_exam_prof(dicc['prof_exam_id'])
     else:
         dicc = retrieve_exam_prof(id1)
-        if 'ai_exam_id' in dicc:
-            dicc2 = retrieve_exam_chat(dicc['ai_exam_id'])
-
-    validar = request.args.get('validar')
-    if validar:
-        correct, total = compare_exams(dicc, dicc2)
-        return f"Evaluacion: {correct}/{total}"
-
+        #if 'ai_exam_id' in dicc:
+        #    dicc2 = retrieve_exam_chat(dicc['ai_exam_id'])
 
     buffer = BytesIO()
     create_document(dicc['titulo'], dicc['lista_preguntas'], buffer)
     buffer.seek(0)
+    response = Response(buffer.getvalue(), mimetype='application/pdf')
 
-    return Response(buffer.getvalue(), mimetype='application/pdf')
+    #validar = request.args.get('validar')
+    #if validar:
+    #    correct, total = compare_exams(dicc, dicc2)
+    #    return response, [correct, total]
+
+    return response
 
 

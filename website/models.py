@@ -17,16 +17,23 @@ def retrieve_exam_prof(id: str):
     objInstance = ObjectId(id)
     return db.examProf.find_one(objInstance)
 
-def compare_exams(dicc1: dict, dicc2: dict):
+def compare_exams(id1: str, id2: str, action:str):
+    if action == 'checkChat':
+        dicc_chat = retrieve_exam_chat(id1)
+        dicc_prof = retrieve_exam_prof(id2)
+    else:
+        dicc_chat = retrieve_exam_chat(id2)
+        dicc_prof = retrieve_exam_prof(id1)
+
     correct = 0
     total = 0
 
-    for questions1, questions2 in zip(dicc1['lista_preguntas'], dicc2['lista_preguntas']):
+    for questions1, questions2 in zip(dicc_chat['lista_preguntas'], dicc_prof['lista_preguntas']):
         if questions1['respuesta_correcta'] == questions2['respuesta_correcta']:
             correct += 1
         total += 1
 
-    return correct, total
+    return [correct, total]
 
 
 
