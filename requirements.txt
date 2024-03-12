@@ -1,9 +1,7 @@
 flask
 flask-pymongo
 python-dotenv
-gpti
+reportlab
 json
-fitz
-docx
 io
 fpdf2

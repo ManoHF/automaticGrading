@@ -1,8 +1,9 @@
 from flask import Blueprint, request, render_template, redirect, url_for, Response, render_template_string
 from werkzeug.utils import secure_filename
-from .services import get_chatGPT_response, extract_text_from_file, create_document, add_exam_data
 from .models import create_exam_chat, retrieve_exam_chat, create_exam_prof, retrieve_exam_prof, compare_exams
 from io import BytesIO
+from .services_chat import get_chatgpt_image_response, add_exam_data, create_document
+import os
 
 views = Blueprint('views', __name__)
 
@@ -12,6 +13,8 @@ def home():
 
 @views.route('/procesar', methods=['POST'])
 def procesar():
+    UPLOAD_FOLDER = './fileCache'
+
     if request.method == 'POST':
         departamento = request.form.get('departamento', '')
         profesor = request.form.get('profesor', '')
@@ -22,27 +25,31 @@ def procesar():
             return redirect(request.url)
 
         file = request.files['fileUpload']
+
         if file.filename == '':
             return redirect(request.url)
 
         if file:
             filename = secure_filename(file.filename)
-            content = file.read()
-            file_text = extract_text_from_file(content, filename)
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(file_path)
 
             action = request.form.get('action', '')
+            exam = {}
 
             if action == 'checkChat':
-                result = get_chatGPT_response(file_text)
-                dict_res = eval(result)
-                add_exam_data(dict_res, departamento, materia, profesor, fecha)
-                id_obj = create_exam_chat(dict_res)
+                result = get_chatgpt_image_response(file_path)
+                exam['lista_preguntas'] = result
+                add_exam_data(exam, departamento, materia, profesor, fecha)
+                id_obj = create_exam_chat(exam)
 
             elif action == 'uploadAnswers':
-                result = get_chatGPT_response(file_text, True)
-                dict_res = eval(result)
-                add_exam_data(dict_res, departamento, materia, profesor, fecha)
-                id_obj = create_exam_prof(dict_res)
+                result = get_chatgpt_image_response(file_path)
+                exam['lista_preguntas'] = result
+                add_exam_data(exam, departamento, materia, profesor, fecha)
+                id_obj = create_exam_prof(exam)
+
+            os.remove(file_path)
 
             return render_template('home.html', resultado=id_obj, action=action)
     
@@ -50,6 +57,8 @@ def procesar():
 
 @views.route('/validar', methods=['POST'])
 def validar():
+    UPLOAD_FOLDER = './fileCache'
+
     if request.method == 'POST':
        
         action = request.form.get('action', '')
@@ -65,22 +74,24 @@ def validar():
 
             if file:
                 filename = secure_filename(file.filename)
-                content = file.read()
-                file_text = extract_text_from_file(content, filename)
+                file_path = os.path.join(UPLOAD_FOLDER, filename)
+                file.save(file_path)
+
+                exam = {}
 
                 if action == 'checkChat':
-                    result = get_chatGPT_response(file_text)
-                    dict_res = eval(result)
+                    result = get_chatgpt_image_response(file_path)
+                    exam['lista_preguntas'] = result
                     #add_exam_data(dict_res, departamento, materia, profesor, fecha)
-                    dict_res['prof_exam_id'] = recent_id
-                    id_obj = create_exam_chat(dict_res)
+                    exam['prof_exam_id'] = recent_id
+                    id_obj = create_exam_chat(exam)
 
                 elif action == 'uploadAnswers':
-                    result = get_chatGPT_response(file_text, True)
-                    dict_res = eval(result)
+                    result = get_chatgpt_image_response(file_path)
+                    exam['lista_preguntas'] = result
                     #add_exam_data(dict_res, departamento, materia, profesor, fecha)
-                    dict_res['ai_exam_id'] = recent_id
-                    id_obj = create_exam_prof(dict_res)
+                    exam['ai_exam_id'] = recent_id
+                    id_obj = create_exam_prof(exam)
 
                 evalua = compare_exams(id_obj, recent_id, action)
 
@@ -103,7 +114,7 @@ def generate_pdf():
         #    dicc2 = retrieve_exam_chat(dicc['ai_exam_id'])
 
     buffer = BytesIO()
-    create_document(dicc['titulo'], dicc['lista_preguntas'], buffer)
+    create_document('titulo', dicc['lista_preguntas'], buffer)
     buffer.seek(0)
     response = Response(buffer.getvalue(), mimetype='application/pdf')
 
