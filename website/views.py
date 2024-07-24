@@ -4,6 +4,8 @@ from .models import create_exam_chat, retrieve_exam_chat, create_exam_prof, retr
 from io import BytesIO
 from .services_chat import get_chatgpt_image_response, add_exam_data, create_document
 import os
+from docx2pdf import convert
+import pythoncom
 
 views = Blueprint('views', __name__)
 
@@ -32,7 +34,18 @@ def procesar():
         if file:
             filename = secure_filename(file.filename)
             file_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(file_path)
+
+            if filename.lower().endswith('.docx'):
+                pdf_file_path = file_path[:-5] + '.pdf'
+                file.save(file_path)
+                pythoncom.CoInitialize()
+                convert(file_path, pdf_file_path)
+                pythoncom.CoUninitialize()
+                #file.save(pdf_file_path)
+                os.remove(file_path)
+                file_path = pdf_file_path
+            else:
+                file.save(file_path)
 
             action = request.form.get('action', '')
             exam = {}
@@ -75,7 +88,16 @@ def validar():
             if file:
                 filename = secure_filename(file.filename)
                 file_path = os.path.join(UPLOAD_FOLDER, filename)
-                file.save(file_path)
+
+                if filename.lower().endswith('.docx'):
+                    pdf_file_path = file_path[:-5] + '.pdf'
+                    file.save(file_path)
+                    convert(file_path, pdf_file_path)
+                    #file.save(pdf_file_path)
+                    os.remove(file_path)
+                    file_path = pdf_file_path
+                else:
+                    file.save(file_path)
 
                 exam = {}
 

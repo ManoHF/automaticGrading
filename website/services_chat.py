@@ -48,14 +48,16 @@ def get_chatgpt_image_response(file_path):
     for image in image_list:
         response = openai.chat.completions.create(model = "gpt-4-vision-preview", 
             messages=[{"role": "system", 
-                    "content": """Eres un solucionador de examenes que tiene que responder ciertas preguntas utilizando las imagenes provistas. Regresa diccionarios
-                                  de python para cada pregunta presente en la imagen con la siguiente información:
+                    "content": """Eres un solucionador de examenes universitarios que tiene que responder ciertas preguntas utilizando las imagenes provistas. 
+                                  Las preguntas recibidas pueden ser de opcion multiple, completar la oracion, o verdadero y falso. Considera que ciertas preguntas pueden ser abiertas para que tu las completes. Si no tienes opciones, responde con tus conocimientos. 
+                                  Regresa diccionarios de python para cada pregunta presente en la imagen con la siguiente información:
                                    - 'texto', su 'numero', otra lista con las 4 'opciones' y la 'respuesta_correcta'
+                                  Recuerda que puede haber preguntas que consistan en una iracion que debas completar, por lo que debes dejar las opciones vacias, pero debes de proveer una respuesta.
                                   Tu respuesta debe ser una lista de python que contenga todos los diccionarios generados por pregunta asegurate que sea un formato JSON valido. Asegurate de usar las llaves
-                                  de la manera como se te indico. Si no hay preguntas en la imagen, devuelve una cadena vacia. No incluyas nada extra en tu respuesta,
+                                  de la manera como se te indico. Si no hay preguntas en la imagen, devuelve una cadena vacia, pero considera que oraciones incompletas pueden ser preguntas para completar con alguna frase. No incluyas nada extra en tu respuesta,
                                   inicia y termina la respuesta con los corchetes de apertura o cierre, segun corresponda. En caso de una pregunta abierta, escribe la respuesta de una manera
-                                  breve y deja vacio el campo de opciones del diccionario. No incluyas la parte donde indicas que es un json.
-                               """                  
+                                  breve y deja vacio el campo de opciones del diccionario. Para las respuestas de problemas matematicos usa LATEX. No incluyas la parte donde indicas que es un json.
+                               """               
                     },
                     { "role": "user",
                      "content": [
@@ -69,13 +71,14 @@ def get_chatgpt_image_response(file_path):
         resp = response.choices[0].message.content
         left, right = 0, len(resp)-1
 
-        while resp[left] != "[":
-            left = left + 1
-        while resp[right] != "]":
-            right = right - 1
+        if resp != '""':
+            while resp[left] != "[":
+                left = left + 1
+            while resp[right] != "]":
+                right = right - 1
 
-        currList = json.loads(resp[left:right+1])
-        responses.extend(currList)
+            currList = json.loads(resp[left:right+1])
+            responses.extend(currList)
 
     return responses
 
