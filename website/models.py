@@ -35,5 +35,18 @@ def compare_exams(id1: str, id2: str, action:str):
 
     return [correct, total]
 
+def add_exam_data(doc: dict, departamento: str, materia: str, profesor: str, fecha: str):
+    if departamento != "":
+        doc['departamento'] = departamento
+
+    if materia != "":
+        doc['materia'] = materia
+
+    if profesor != "":
+        doc['profesor'] = profesor
+    
+    if fecha != "":
+        doc['fecha'] = fecha
+
 
 

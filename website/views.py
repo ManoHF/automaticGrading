@@ -2,10 +2,11 @@ from flask import Blueprint, request, render_template, redirect, url_for, Respon
 from werkzeug.utils import secure_filename
 from .models import create_exam_chat, retrieve_exam_chat, create_exam_prof, retrieve_exam_prof, compare_exams
 from io import BytesIO
-from .services_chat import get_chatgpt_image_response, add_exam_data, create_document
+from .services_chat import get_chatgpt_image_response
+from .services_format import create_document
+from .models import add_exam_data
 import os
 from docx2pdf import convert
-import pythoncom
 
 views = Blueprint('views', __name__)
 
@@ -38,9 +39,10 @@ def procesar():
             if filename.lower().endswith('.docx'):
                 pdf_file_path = file_path[:-5] + '.pdf'
                 file.save(file_path)
-                pythoncom.CoInitialize()
+                print(file_path)
+                #pythoncom.CoInitialize()
                 convert(file_path, pdf_file_path)
-                pythoncom.CoUninitialize()
+                #pythoncom.CoUninitialize()
                 #file.save(pdf_file_path)
                 os.remove(file_path)
                 file_path = pdf_file_path
