@@ -1,6 +1,6 @@
-from flask import Blueprint, request, render_template, redirect, url_for, Response, render_template_string
+from flask import Blueprint, request, render_template, redirect, url_for, Response
 from werkzeug.utils import secure_filename
-from .models import create_exam_chat, retrieve_exam_chat, create_exam_prof, retrieve_exam_prof, compare_exams
+from .models import compare_exams, create_exam, retrieve_exam
 from io import BytesIO
 from .services_chat import get_chatgpt_image_response
 from .services_format import create_document
@@ -9,13 +9,34 @@ import os
 from docx2pdf import convert
 
 views = Blueprint('views', __name__)
+modes_of_operation = ["examAI", "examProf"]
 
 @views.route('/', methods=['GET', 'POST'])
-def home():   
+def home():  
+    """
+    Loads the home page template
+
+    Returns:
+        Renders the 'home.html' template
+    """ 
+
     return render_template('home.html')
 
 @views.route('/procesar', methods=['POST'])
 def procesar():
+    """
+        Takes the input file and sends it to the OpenAI to be evaluated
+
+        POST: Processes the input file and obtains a result from the OpenAI API to be rendered in the home page
+
+        Parameters:
+            request.files['fileUpload']: file to be evaluated
+
+        Returns:
+            If POST, render home page with the result and new pdf;
+            else, redirects to home page
+    """
+
     UPLOAD_FOLDER = './fileCache'
 
     if request.method == 'POST':
@@ -40,10 +61,7 @@ def procesar():
                 pdf_file_path = file_path[:-5] + '.pdf'
                 file.save(file_path)
                 print(file_path)
-                #pythoncom.CoInitialize()
                 convert(file_path, pdf_file_path)
-                #pythoncom.CoUninitialize()
-                #file.save(pdf_file_path)
                 os.remove(file_path)
                 file_path = pdf_file_path
             else:
@@ -52,17 +70,11 @@ def procesar():
             action = request.form.get('action', '')
             exam = {}
 
-            if action == 'checkChat':
+            if action != '':
                 result = get_chatgpt_image_response(file_path)
                 exam['lista_preguntas'] = result
                 add_exam_data(exam, departamento, materia, profesor, fecha)
-                id_obj = create_exam_chat(exam)
-
-            elif action == 'uploadAnswers':
-                result = get_chatgpt_image_response(file_path)
-                exam['lista_preguntas'] = result
-                add_exam_data(exam, departamento, materia, profesor, fecha)
-                id_obj = create_exam_prof(exam)
+                id_obj = create_exam(exam, action)
 
             os.remove(file_path)
 
@@ -72,6 +84,19 @@ def procesar():
 
 @views.route('/validar', methods=['POST'])
 def validar():
+    """
+        Takes the input file and sends it to the OpenAI to be evaluated and then compare it with a previous results
+
+        POST: Processes the input file and obtains a result from comparing the previous document and the current one
+
+        Parameters:
+            request.files['fileUpload']: file to be evaluated
+
+        Returns:
+            If POST, render home page with the results;
+            else, redirects to home page
+    """
+
     UPLOAD_FOLDER = './fileCache'
 
     if request.method == 'POST':
@@ -95,7 +120,6 @@ def validar():
                     pdf_file_path = file_path[:-5] + '.pdf'
                     file.save(file_path)
                     convert(file_path, pdf_file_path)
-                    #file.save(pdf_file_path)
                     os.remove(file_path)
                     file_path = pdf_file_path
                 else:
@@ -103,21 +127,17 @@ def validar():
 
                 exam = {}
 
-                if action == 'checkChat':
+                if action != '':
                     result = get_chatgpt_image_response(file_path)
                     exam['lista_preguntas'] = result
-                    #add_exam_data(dict_res, departamento, materia, profesor, fecha)
-                    exam['prof_exam_id'] = recent_id
-                    id_obj = create_exam_chat(exam)
+                    exam[f'{action}_id'] = recent_id
+                    id_obj = create_exam(exam, action)
 
-                elif action == 'uploadAnswers':
-                    result = get_chatgpt_image_response(file_path)
-                    exam['lista_preguntas'] = result
-                    #add_exam_data(dict_res, departamento, materia, profesor, fecha)
-                    exam['ai_exam_id'] = recent_id
-                    id_obj = create_exam_prof(exam)
+                exam1 = retrieve_exam(id_obj, action)
+                action_not_used = [value for value in modes_of_operation if value != action][0]
+                exam2 = retrieve_exam(recent_id, action_not_used)
 
-                evalua = compare_exams(id_obj, recent_id, action)
+                evalua = compare_exams(exam1, exam2)
 
                 return render_template('home.html', resultado=id_obj, action=action, validar=True, evalua=evalua)
     
@@ -125,27 +145,29 @@ def validar():
 
 @views.route('/generate_pdf', methods=['GET'])
 def generate_pdf():
+    """
+        Generates a pdf of the input file with the correct answers formated
+
+        Returns:
+            The bytes from a buffer where the pdf is stored
+    """
+
     id1 = request.args.get('id')
     action = request.args.get('action')
 
-    if action == 'checkChat':
-        dicc = retrieve_exam_chat(id1)
-        #if 'prof_exam_id' in dicc:
-        #    dicc2 = retrieve_exam_prof(dicc['prof_exam_id'])
-    else:
-        dicc = retrieve_exam_prof(id1)
-        #if 'ai_exam_id' in dicc:
-        #    dicc2 = retrieve_exam_chat(dicc['ai_exam_id'])
+    dicc = retrieve_exam(id1, action)
+    action_not_used = [value for value in modes_of_operation if value != action][0]
 
     buffer = BytesIO()
     create_document('titulo', dicc['lista_preguntas'], buffer)
     buffer.seek(0)
     response = Response(buffer.getvalue(), mimetype='application/pdf')
 
-    #validar = request.args.get('validar')
-    #if validar:
-    #    correct, total = compare_exams(dicc, dicc2)
-    #    return response, [correct, total]
+    validar = request.args.get('validar')
+    if validar and (action_not_used in dicc):
+        dicc2 = retrieve_exam(dicc[action_not_used])
+        correct, total = compare_exams(dicc, dicc2)
+        return response, [correct, total]
 
     return response
 
