@@ -2,14 +2,13 @@ from flask import Blueprint, request, render_template, redirect, url_for, Respon
 from werkzeug.utils import secure_filename
 from .models import compare_exams, create_exam, retrieve_exam
 from io import BytesIO
-from .services_chat import get_chatgpt_image_response
+from .services_chat import get_chatgpt_image_response, modes_of_operation
 from .services_format import create_document
 from .models import add_exam_data
 import os
 from docx2pdf import convert
 
 views = Blueprint('views', __name__)
-modes_of_operation = ["examAI", "examProf"]
 
 @views.route('/', methods=['GET', 'POST'])
 def home():  
@@ -71,7 +70,7 @@ def procesar():
             exam = {}
 
             if action != '':
-                result = get_chatgpt_image_response(file_path)
+                result = get_chatgpt_image_response(file_path, action)
                 exam['lista_preguntas'] = result
                 add_exam_data(exam, departamento, materia, profesor, fecha)
                 id_obj = create_exam(exam, action)
@@ -128,7 +127,7 @@ def validar():
                 exam = {}
 
                 if action != '':
-                    result = get_chatgpt_image_response(file_path)
+                    result = get_chatgpt_image_response(file_path, action)
                     exam['lista_preguntas'] = result
                     exam[f'{action}_id'] = recent_id
                     id_obj = create_exam(exam, action)

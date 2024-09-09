@@ -7,8 +7,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_KEY')
+modes_of_operation = ["examAI", "examProf"]
 
-def encode_image(image_path):
+def encode_image(image_path: str):
     """
     Reads an image from a given path and encodes it using base64 to then decoded
     with utf-8.
@@ -29,7 +30,7 @@ def encode_image(image_path):
         
         return encoded_image
 
-def generate_image_list(file_path):
+def generate_image_list(file_path: str):
     """
     Given the path to a file, turns each page into an image, formats it and appends
     it to a list
@@ -53,13 +54,14 @@ def generate_image_list(file_path):
 
     return images_list
 
-def get_chatgpt_image_response(file_path, chosen_model = "gpt-4-vision-preview"):
+def get_chatgpt_image_response(file_path: str, action: str, chosen_model = "gpt-4-vision-preview"):
     """
     Given the path to a file, calls the OpenAI Api to solve or validate a given exam. Default model
     can be changed. Be aware they do not have all the same capabilities.
 
     Args:
         file_path (str): path where the file is stored
+        action (str): helps determine with which instructions complete the prompt
         chosen_model (str): model to be called in the OpenAI API
 
     Returns:
@@ -69,11 +71,15 @@ def get_chatgpt_image_response(file_path, chosen_model = "gpt-4-vision-preview")
     image_list = generate_image_list(file_path)
     responses = []
 
+    if action == modes_of_operation[0]:
+        action_content = "Eres un solucionador de examenes universitarios que tiene que responder ciertas preguntas utilizando las imagenes provistas."
+    else:
+        action_content = "Eres el encargado de guardar de examenes universitarios utilizando las imagenes provistas."
+
     for image in image_list:
         response = openai.chat.completions.create(model = chosen_model, 
             messages=[{"role": "system", 
-                    "content": """Eres un solucionador de examenes universitarios que tiene que responder ciertas preguntas utilizando las imagenes provistas. 
-                                  Las preguntas recibidas pueden ser de opcion multiple, completar la oracion, o verdadero y falso. Considera que ciertas preguntas pueden ser abiertas para que tu las completes. Si no tienes opciones, responde con tus conocimientos. 
+                    "content": action_content + """Las preguntas recibidas pueden ser de opcion multiple, completar la oracion, o verdadero y falso. Considera que ciertas preguntas pueden ser abiertas para que tu las completes. Si no tienes opciones, responde con tus conocimientos. 
                                   Regresa diccionarios de python para cada pregunta presente en la imagen con la siguiente información:
                                    - 'texto', su 'numero', otra lista con las 4 'opciones' y la 'respuesta_correcta'
                                   Recuerda que puede haber preguntas que consistan en una oracion que debas completar, por lo que debes dejar las opciones vacias, pero debes de proveer una respuesta.
