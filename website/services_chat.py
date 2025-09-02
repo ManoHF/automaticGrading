@@ -6,7 +6,7 @@ import fitz
 from dotenv import load_dotenv
 
 load_dotenv()
-openai.api_key = os.getenv('OPENAI_KEY')
+openai.api_key = os.getenv('AISERVICE_KEY')
 modes_of_operation = ["examAI", "examProf"]
 
 def encode_image(image_path: str):
@@ -54,7 +54,7 @@ def generate_image_list(file_path: str):
 
     return images_list
 
-def get_chatgpt_image_response(file_path: str, action: str, chosen_model = "gpt-4-vision-preview"):
+def get_chatgpt_image_response(file_path: str, action: str, chosen_model = "o4-mini"):
     """
     Given the path to a file, calls the OpenAI Api to solve or validate a given exam. Default model
     can be changed. Be aware they do not have all the same capabilities.

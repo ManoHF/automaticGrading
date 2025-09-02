@@ -28,7 +28,7 @@ Create an account for the OpenAI Platform (not the same as ChatGPT). Create an A
 Create a `.env` file at the same level as Requirements.txt. The last value should be chosen by you and it adds security to your Flask application. It should include the following (be aware of the single quotes):
 
 ```.env
-OPENAI_KEY=<key_retrieved_on_1.2>
+AISERVICE_KEY=<key_retrieved_on_1.2>
 MONGO_URI='<uri_retrieved_on_1.1>'
 SECRET_KEY='<own_choice>'
 ```
