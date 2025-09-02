@@ -32,5 +32,14 @@ AISERVICE_KEY=<key_retrieved_on_1.2>
 MONGO_URI='<uri_retrieved_on_1.1>'
 SECRET_KEY='<own_choice>'
 ```
+
+Install python and all the required packages. The recommended way is to use a virtual environment:
+
+```shell
+conda create –name <envName>
+conda activate <envName>
+pip install -r requirements.txt
+```
   
+> Make sure your IDE is using the correct python interpreter in case you are seeing package errors
 
