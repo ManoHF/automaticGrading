@@ -73,7 +73,6 @@ def procesar():
 
             if action != '':
                 result = get_openAI_response(file_path, action)
-                print(result)
                 exam['lista_preguntas'] = result
                 add_exam_data(exam, departamento, materia, profesor, fecha)
                 id_obj = create_exam(exam, action)

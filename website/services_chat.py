@@ -60,11 +60,9 @@ def get_openAI_response(file_path: str, action: str, chosen_model = "o4-mini"):
 
 def _action_preamble(action: str):
     if action == "resolver":
-        return ("Eres un solucionador de examenes universitarios que tiene que responder "
-                "ciertas preguntas utilizando el PDF provisto. ")
+        return ("Eres un solucionador de examenes universitarios que tiene que responder ciertas preguntas utilizando las imagenes provistas.")
     else:
-        return ("Eres el encargado de guardar o validar examenes universitarios utilizando "
-                "el PDF provisto. ")
+        return ("Eres el encargado de guardar de examenes universitarios utilizando las imagenes provistas.")
     
 def _common_exam_instructions():
     return """Las preguntas recibidas pueden ser de opcion multiple, completar la oracion, o verdadero y falso. Considera que ciertas preguntas pueden ser abiertas para que tu las completes. Si no tienes opciones, responde con tus conocimientos. 
