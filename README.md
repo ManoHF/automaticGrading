@@ -15,6 +15,8 @@ set this up is the following:
    * Set up IP Addresses you will be using to connect
    * Connection Method: driver -> python -> retrieve `URI` and update with previously set pw
 
+**IMPORTANT**: When retrieving your URI, you may need to include your db name: `mongodb+srv://<username>:<password>@<cluster-name>.mongodb.net/<dbname>?retryWrites=true&w=majority`
+
 > In case you need new IP addresses to connect from: go to Security -> Network Access -> Add IP Adress
 
 ### 1.2 OpenAI
