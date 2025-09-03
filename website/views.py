@@ -1,8 +1,9 @@
+import shutil
 from flask import Blueprint, request, render_template, redirect, url_for, Response
 from werkzeug.utils import secure_filename
 from .models import compare_exams, create_exam, retrieve_exam
 from io import BytesIO
-from .services_chat import get_chatgpt_image_response, modes_of_operation
+from .services_chat import get_openAI_response, modes_of_operation
 from .services_format import create_document
 from .models import add_exam_data
 import os
@@ -39,6 +40,7 @@ def procesar():
     UPLOAD_FOLDER = './fileCache'
 
     if request.method == 'POST':
+        os.makedirs("fileCache", exist_ok=True)
         departamento = request.form.get('departamento', '')
         profesor = request.form.get('profesor', '')
         materia = request.form.get('materia', '')
@@ -70,12 +72,15 @@ def procesar():
             exam = {}
 
             if action != '':
-                result = get_chatgpt_image_response(file_path, action)
+                result = get_openAI_response(file_path, action)
+                print(result)
                 exam['lista_preguntas'] = result
                 add_exam_data(exam, departamento, materia, profesor, fecha)
                 id_obj = create_exam(exam, action)
 
             os.remove(file_path)
+            if os.path.exists(UPLOAD_FOLDER):
+                shutil.rmtree(UPLOAD_FOLDER)
 
             return render_template('home.html', resultado=id_obj, action=action)
     
@@ -99,6 +104,7 @@ def validar():
     UPLOAD_FOLDER = './fileCache'
 
     if request.method == 'POST':
+        os.makedirs("fileCache", exist_ok=True)
        
         action = request.form.get('action', '')
         recent_id = request.form.get('recentId', '')
@@ -127,7 +133,7 @@ def validar():
                 exam = {}
 
                 if action != '':
-                    result = get_chatgpt_image_response(file_path, action)
+                    result = get_openAI_response(file_path, action)
                     exam['lista_preguntas'] = result
                     exam[f'{action}_id'] = recent_id
                     id_obj = create_exam(exam, action)
@@ -137,6 +143,9 @@ def validar():
                 exam2 = retrieve_exam(recent_id, action_not_used)
 
                 evalua = compare_exams(exam1, exam2)
+
+                if os.path.exists(UPLOAD_FOLDER):
+                    shutil.rmtree(UPLOAD_FOLDER)
 
                 return render_template('home.html', resultado=id_obj, action=action, validar=True, evalua=evalua)
     
