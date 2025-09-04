@@ -1,4 +1,7 @@
 import shutil
+import os
+import logging
+from docx2pdf import convert
 from flask import Blueprint, request, render_template, redirect, url_for, Response
 from werkzeug.utils import secure_filename
 from .models import compare_exams, create_exam, retrieve_exam
@@ -6,10 +9,10 @@ from io import BytesIO
 from .services_chat import get_openAI_response, modes_of_operation
 from .services_format import create_document
 from .models import add_exam_data
-import os
-from docx2pdf import convert
+from .views_utils import get_uploaded_file, save_upload, docx_to_pdf
 
 views = Blueprint('views', __name__)
+log = logging.getLogger(__name__)
 
 @views.route('/', methods=['GET', 'POST'])
 def home():  
@@ -38,52 +41,34 @@ def procesar():
     """
 
     UPLOAD_FOLDER = './fileCache'
+    os.makedirs("fileCache", exist_ok=True)
 
-    if request.method == 'POST':
-        os.makedirs("fileCache", exist_ok=True)
-        departamento = request.form.get('departamento', '')
-        profesor = request.form.get('profesor', '')
-        materia = request.form.get('materia', '')
-        fecha = request.form.get('fecha', '')
+    file, filename, extension = get_uploaded_file(request, "fileUpload")
+    path = save_upload(file, filename, UPLOAD_FOLDER)
 
-        if 'fileUpload' not in request.files:
-            return redirect(request.url)
+    if extension == ".docx":
+        pdf_out = os.path.join(UPLOAD_FOLDER, os.path.splitext(filename)[0] + ".pdf")
+        docx_to_pdf(path, pdf_out)
+        pdf_for_model = pdf_out
+    else:
+        pdf_for_model = path
 
-        file = request.files['fileUpload']
+    departamento = request.form.get('departamento', '')
+    profesor = request.form.get('profesor', '')
+    materia = request.form.get('materia', '')
+    fecha = request.form.get('fecha', '')
+    action = request.form.get('action', '')
+    exam = {}
 
-        if file.filename == '':
-            return redirect(request.url)
+    if action != '':
+        log.info(f"Sending request with: path={pdf_for_model} & action={action}")
+        result = get_openAI_response(pdf_for_model, action)
+        log.info(f"Response: {result}")
+        exam['lista_preguntas'] = result
+        add_exam_data(exam, departamento, materia, profesor, fecha)
+        id_obj = create_exam(exam, action)
 
-        if file:
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-
-            if filename.lower().endswith('.docx'):
-                pdf_file_path = file_path[:-5] + '.pdf'
-                file.save(file_path)
-                print(file_path)
-                convert(file_path, pdf_file_path)
-                os.remove(file_path)
-                file_path = pdf_file_path
-            else:
-                file.save(file_path)
-
-            action = request.form.get('action', '')
-            exam = {}
-
-            if action != '':
-                result = get_openAI_response(file_path, action)
-                exam['lista_preguntas'] = result
-                add_exam_data(exam, departamento, materia, profesor, fecha)
-                id_obj = create_exam(exam, action)
-
-            os.remove(file_path)
-            if os.path.exists(UPLOAD_FOLDER):
-                shutil.rmtree(UPLOAD_FOLDER)
-
-            return render_template('home.html', resultado=id_obj, action=action)
-    
-    return redirect(url_for('views.home'))
+    return render_template('home.html', resultado=id_obj, action=action)
 
 @views.route('/validar', methods=['POST'])
 def validar():
