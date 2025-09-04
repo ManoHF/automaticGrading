@@ -63,7 +63,8 @@ def procesar():
     if action != '':
         log.info(f"Sending request with: path={pdf_for_model} & action={action}")
         result = get_openAI_response(pdf_for_model, action)
-        log.info(f"Response: {result}")
+        if isinstance(result, list):
+            log.info(f"Registering exam with {len(result)} questions")
         exam['lista_preguntas'] = result
         add_exam_data(exam, departamento, materia, profesor, fecha)
         id_obj = create_exam(exam, action)

@@ -1,11 +1,11 @@
 from openai import OpenAI
-import base64
+import logging
 import os
 import json
-import fitz
 from dotenv import load_dotenv
 
 load_dotenv()
+log = logging.getLogger(__name__)
 client = OpenAI(api_key=os.getenv('AISERVICE_KEY'))
 modes_of_operation = ["examAI", "examProf"]
 
@@ -43,15 +43,13 @@ def get_openAI_response(file_path: str, action: str, chosen_model = "o4-mini"):
             }
         ]
     )
-
-    output_text = getattr(response, "output_text", None)
-    if output_text is None:
-        pieces = []
-        for item in getattr(response, "output", []) or []:
-            for c in getattr(item, "content", []) or []:
-                if c.get("type") == "output_text" and "text" in c:
+    pieces = []
+    for item in response.output or []:
+        if item.get("type") == "message":
+            for c in item.get("content", []):
+                if c.get("type") == "output_text":
                     pieces.append(c["text"])
-        output_text = "".join(pieces)
+    output_text = "".join(pieces)
 
     try:
         return _extract_json_list(output_text)
@@ -74,7 +72,6 @@ def _common_exam_instructions():
             inicia y termina la respuesta con los corchetes de apertura o cierre, segun corresponda. En caso de una pregunta abierta, escribe la respuesta de una manera
             breve y deja vacio el campo de opciones del diccionario. Para las respuestas de problemas matematicos usa LATEX. No incluyas la parte donde indicas que es un json.
             """   
-
 
 def _extract_json_list(text: str):
     if not text or text.strip() == '""':
