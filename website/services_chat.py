@@ -43,12 +43,13 @@ def get_openAI_response(file_path: str, action: str, chosen_model = "o4-mini"):
             }
         ]
     )
+    
     pieces = []
     for item in response.output or []:
-        if item.get("type") == "message":
-            for c in item.get("content", []):
-                if c.get("type") == "output_text":
-                    pieces.append(c["text"])
+        if getattr(item, "type", None) == "message":
+            for c in getattr(item, "content", []):
+                if getattr(c, "type", None) == "output_text":
+                    pieces.append(c.text)
     output_text = "".join(pieces)
 
     try:
