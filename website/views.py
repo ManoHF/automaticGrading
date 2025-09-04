@@ -69,6 +69,12 @@ def procesar():
         add_exam_data(exam, departamento, materia, profesor, fecha)
         id_obj = create_exam(exam, action)
 
+    try:
+        shutil.rmtree(UPLOAD_FOLDER)
+        log.info("Temporary upload folder deleted successfully.")
+    except Exception as e:
+        log.error(f"Error deleting upload folder: {e}")
+
     return render_template('home.html', resultado=id_obj, action=action)
 
 @views.route('/validar', methods=['POST'])
