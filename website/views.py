@@ -68,6 +68,7 @@ def procesar():
         exam['lista_preguntas'] = result
         add_exam_data(exam, departamento, materia, profesor, fecha)
         id_obj = create_exam(exam, action)
+        log.info("Exam successfully processed")
 
     try:
         shutil.rmtree(UPLOAD_FOLDER)
@@ -93,52 +94,44 @@ def validar():
     """
 
     UPLOAD_FOLDER = './fileCache'
+    os.makedirs("fileCache", exist_ok=True)
 
-    if request.method == 'POST':
-        os.makedirs("fileCache", exist_ok=True)
-       
+    recent_id = request.form.get('recentId', '')
+    if recent_id != "Most recent document ID":
+        file, filename, extension = get_uploaded_file(request, "fileUpload")
+        path = save_upload(file, filename, UPLOAD_FOLDER)
+
+        if extension == ".docx":
+            pdf_out = os.path.join(UPLOAD_FOLDER, os.path.splitext(filename)[0] + ".pdf")
+            docx_to_pdf(path, pdf_out)
+            pdf_for_model = pdf_out
+        else:
+            pdf_for_model = path
+
         action = request.form.get('action', '')
-        recent_id = request.form.get('recentId', '')
-        if recent_id != "Most recent document ID":          
+        exam = {}
 
-            if 'fileUpload' not in request.files:
-                return redirect(request.url)
+        if action != '':
+            log.info(f"Sending request with: path={pdf_for_model} & action={action}")
+            result = get_openAI_response(pdf_for_model, action)
+            exam['lista_preguntas'] = result
+            exam[f'{action}_id'] = recent_id
+            id_obj = create_exam(exam, action)
 
-            file = request.files['fileUpload']
-            if file.filename == '':
-                return redirect(request.url)
+        exam1 = retrieve_exam(id_obj, action)
+        action_not_used = [value for value in modes_of_operation if value != action][0]
+        exam2 = retrieve_exam(recent_id, action_not_used)
 
-            if file:
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(UPLOAD_FOLDER, filename)
+        evalua = compare_exams(exam1, exam2)
+        log.info("Exam successfully validated")
 
-                if filename.lower().endswith('.docx'):
-                    pdf_file_path = file_path[:-5] + '.pdf'
-                    file.save(file_path)
-                    convert(file_path, pdf_file_path)
-                    os.remove(file_path)
-                    file_path = pdf_file_path
-                else:
-                    file.save(file_path)
+        try:
+            shutil.rmtree(UPLOAD_FOLDER)
+            log.info("Temporary upload folder deleted successfully.")
+        except Exception as e:
+            log.error(f"Error deleting upload folder: {e}")
 
-                exam = {}
-
-                if action != '':
-                    result = get_openAI_response(file_path, action)
-                    exam['lista_preguntas'] = result
-                    exam[f'{action}_id'] = recent_id
-                    id_obj = create_exam(exam, action)
-
-                exam1 = retrieve_exam(id_obj, action)
-                action_not_used = [value for value in modes_of_operation if value != action][0]
-                exam2 = retrieve_exam(recent_id, action_not_used)
-
-                evalua = compare_exams(exam1, exam2)
-
-                if os.path.exists(UPLOAD_FOLDER):
-                    shutil.rmtree(UPLOAD_FOLDER)
-
-                return render_template('home.html', resultado=id_obj, action=action, validar=True, evalua=evalua)
+        return render_template('home.html', resultado=id_obj, action=action, validar=True, evalua=evalua)
     
     return render_template('home.html')
 
