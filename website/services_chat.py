@@ -45,15 +45,28 @@ def get_openAI_response(file_path: str, action: str, chosen_model = "o4-mini"):
     )
     
     pieces = []
-    for item in response.output or []:
-        if getattr(item, "type", None) == "message":
-            for c in getattr(item, "content", []):
-                if getattr(c, "type", None) == "output_text":
-                    pieces.append(c.text)
-    output_text = "".join(pieces)
+    for item in (response.output or []):
+        # object style
+        itype = getattr(item, "type", None) if not isinstance(item, dict) else item.get("type")
+        if itype != "message":
+            continue
+
+        content = getattr(item, "content", None) if not isinstance(item, dict) else item.get("content", [])
+        if not content:
+            continue
+
+        for c in content:
+            ctype = getattr(c, "type", None) if not isinstance(c, dict) else c.get("type")
+            if ctype == "output_text":
+                textval = getattr(c, "text", None) if not isinstance(c, dict) else c.get("text")
+                if textval:
+                    pieces.append(textval)
+
+    text = "".join(pieces)
+
 
     try:
-        return _extract_json_list(output_text)
+        return _extract_json_list(text)
     except Exception:
         return []
 
