@@ -63,6 +63,7 @@ def procesar():
     if action != '':
         log.info(f"Sending request with: path={pdf_for_model} & action={action}")
         result = get_openAI_response(pdf_for_model, action)
+        log.info(f"Document to be stored:\n{result}")
         if isinstance(result, list):
             log.info(f"Registering exam with {len(result)} questions")
         exam['lista_preguntas'] = result
@@ -114,6 +115,7 @@ def validar():
         if action != '':
             log.info(f"Sending request with: path={pdf_for_model} & action={action}")
             result = get_openAI_response(pdf_for_model, action)
+            log.info(f"Document to be stored:\n{result}")
             exam['lista_preguntas'] = result
             exam[f'{action}_id'] = recent_id
             id_obj = create_exam(exam, action)
